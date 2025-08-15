@@ -31,46 +31,61 @@ def selecionar_camera():
         except ValueError:
             print("Digite apenas números!")
 
-# Configurações iniciais
-if not os.path.exists('faces'):
-    os.makedirs('faces')
+def capturar_rostos(camera_idx):
+    # Configurações iniciais
+    if not os.path.exists('faces'):
+        os.makedirs('faces')
 
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-if face_cascade.empty():
-    print("Erro: Classificador Haar não carregado!")
-    exit()
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    if face_cascade.empty():
+        print("Erro: Classificador Haar não carregado!")
+        return
 
-# Seleciona a câmera
-camera_idx = selecionar_camera()
-cap = cv2.VideoCapture(camera_idx)
-cap.set(3, 640)  # largura
-cap.set(4, 480)  # altura
+    cap = cv2.VideoCapture(camera_idx)
+    cap.set(3, 640)  # largura
+    cap.set(4, 480)  # altura
 
-face_id = input("\nDigite um ID numérico para a pessoa: ")
-count = 0
+    face_id = input("\nDigite um ID numérico para a pessoa: ")
+    count = 0
 
-print("\nCapturando rostos... Pressione Q para encerrar")
+    print("\nCapturando rostos... Pressione Q para encerrar")
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        print("Erro ao capturar frame!")
-        break
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Erro ao capturar frame!")
+            break
+            
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+        for (x, y, w, h) in faces:
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            count += 1
+            cv2.imwrite(f"faces/face_{face_id}_{count}.jpg", gray[y:y+h, x:x+w])
+            print(f"Capturada imagem {count}/100", end='\r')
+
+        cv2.imshow('Capturando Rostos', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q') or count >= 100:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    print(f"\nCaptura concluída! {count} imagens salvas na pasta 'faces'")
+
+# Programa principal
+def main():
+    # Seleciona a câmera uma única vez
+    camera_idx = selecionar_camera()
+    
+    while True:
+        capturar_rostos(camera_idx)
         
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        resposta = input("\nDeseja cadastrar outra pessoa? (s/n): ").lower()
+        if resposta != 's':
+            print("Encerrando o programa...")
+            break
 
-    for (x, y, w, h) in faces:
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        count += 1
-        cv2.imwrite(f"faces/face_{face_id}_{count}.jpg", gray[y:y+h, x:x+w])
-        print(f"Capturada imagem {count}/30", end='\r')
-
-    cv2.imshow('Capturando Rostos', frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q') or count >= 100:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-print(f"\nCaptura concluída! {count} imagens salvas na pasta 'faces'")
+if __name__ == "__main__":
+    main()
