@@ -1,6 +1,7 @@
 import cv2
 import os
 import json
+from config import *
 
 def selecionar_camera():
     """Permite ao usuário selecionar qual câmera usar"""
@@ -43,8 +44,8 @@ def capturar_rostos(camera_idx):
         return
 
     cap = cv2.VideoCapture(camera_idx)
-    cap.set(3, 640)  # largura
-    cap.set(4, 480)  # altura
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 
     face_id = input("\nDigite um ID numérico para a pessoa: ")
     face_name = input("Digite o nome da pessoa: ")
@@ -70,12 +71,20 @@ def capturar_rostos(camera_idx):
             break
             
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        faces = face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=DETECTION_SCALE_FACTOR,
+            minNeighbors=DETECTION_MIN_NEIGHBORS,
+            minSize=CAPTURE_MIN_SIZE,
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
 
         for (x, y, w, h) in faces:
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
             count += 1
-            cv2.imwrite(f"faces/face_{face_id}_{count}.jpg", gray[y:y+h, x:x+w])
+            # Redimensiona a face antes de salvar
+            face_resized = cv2.resize(gray[y:y+h, x:x+w], TARGET_FACE_SIZE)
+            cv2.imwrite(f"faces/face_{face_id}_{count}.jpg", face_resized)
             print(f"Capturada imagem {count}/100", end='\r')
 
         cv2.imshow('Capturando Rostos', frame)
@@ -87,9 +96,7 @@ def capturar_rostos(camera_idx):
     cv2.destroyAllWindows()
     print(f"\nCaptura concluída! {count} imagens salvas na pasta 'faces'")
 
-# Programa principal
 def main():
-    # Seleciona a câmera uma única vez
     camera_idx = selecionar_camera()
     
     while True:

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+from config import *
 
 print("\nIniciando treinamento...")
 
@@ -23,11 +24,9 @@ def get_images_and_labels(path):
             continue
 
         id = int(os.path.split(image_path)[-1].split('_')[1])
-        faces = face_cascade.detectMultiScale(img)
-
-        for (x, y, w, h) in faces:
-            face_samples.append(img[y:y+h, x:x+w])
-            ids.append(id)
+        # Usa a imagem já redimensionada diretamente
+        face_samples.append(img)
+        ids.append(id)
 
     return face_samples, ids
 

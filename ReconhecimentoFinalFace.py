@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import json
 import os
+from config import *
 
 def selecionar_camera():
     """Permite ao usuário selecionar qual câmera usar"""
@@ -48,8 +49,8 @@ if os.path.exists('names.json'):
 # Seleciona a câmera
 camera_idx = selecionar_camera()
 cap = cv2.VideoCapture(camera_idx)
-cap.set(3, 640)
-cap.set(4, 480)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 
 print("\nReconhecimento ativo. Pressione Q para sair")
 
@@ -60,15 +61,24 @@ while True:
         break
         
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    
+    faces = face_cascade.detectMultiScale(
+        gray,
+        scaleFactor=DETECTION_SCALE_FACTOR,
+        minNeighbors=DETECTION_MIN_NEIGHBORS,
+        minSize=DETECTION_MIN_SIZE,
+        flags=cv2.CASCADE_SCALE_IMAGE
+    )
 
     for (x, y, w, h) in faces:
         face_roi = gray[y:y+h, x:x+w]
+        # Redimensiona para o mesmo tamanho usado no treinamento
+        face_roi = cv2.resize(face_roi, TARGET_FACE_SIZE)
         
         id, confidence = recognizer.predict(face_roi)
         
-        if confidence < 60:
-            name = names.get(str(id), f"Convidado {id}")  # Convertendo para string pois JSON usa strings como chaves
+        if confidence < CONFIDENCE_THRESHOLD:
+            name = names.get(str(id), f"Convidado {id}")
             color = (0, 255, 0)  # Verde para conhecidos
         else:
             name = "Desconhecido"
