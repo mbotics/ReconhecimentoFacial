@@ -3,7 +3,7 @@ import os
 
 def selecionar_camera():
     """Permite ao usuário selecionar qual câmera usar"""
-    index = 1
+    index = 0
     cameras = []
     while True:
         cap = cv2.VideoCapture(index)
