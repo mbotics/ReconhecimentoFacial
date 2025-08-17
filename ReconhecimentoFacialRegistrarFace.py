@@ -1,5 +1,6 @@
 import cv2
 import os
+import json
 
 def selecionar_camera():
     """Permite ao usuário selecionar qual câmera usar"""
@@ -46,6 +47,18 @@ def capturar_rostos(camera_idx):
     cap.set(4, 480)  # altura
 
     face_id = input("\nDigite um ID numérico para a pessoa: ")
+    face_name = input("Digite o nome da pessoa: ")
+    
+    # Salvar o mapeamento ID -> Nome
+    names = {}
+    if os.path.exists('names.json'):
+        with open('names.json', 'r') as f:
+            names = json.load(f)
+    
+    names[face_id] = face_name
+    with open('names.json', 'w') as f:
+        json.dump(names, f)
+    
     count = 0
 
     print("\nCapturando rostos... Pressione Q para encerrar")

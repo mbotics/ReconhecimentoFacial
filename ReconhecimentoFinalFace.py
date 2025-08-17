@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import json
+import os
 
 def selecionar_camera():
     """Permite ao usuário selecionar qual câmera usar"""
@@ -37,12 +39,11 @@ recognizer.read('trainer.yml')
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-# Mapeamento de IDs para nomes
-names = {
-    1: "kayky",
-    2: "Pessoa 2",
-    # Adicione mais conforme necessário
-}
+# Carrega o mapeamento de IDs para nomes
+names = {}
+if os.path.exists('names.json'):
+    with open('names.json', 'r') as f:
+        names = json.load(f)
 
 # Seleciona a câmera
 camera_idx = selecionar_camera()
@@ -67,7 +68,7 @@ while True:
         id, confidence = recognizer.predict(face_roi)
         
         if confidence < 60:
-            name = names.get(id, f"Convidado {id}")
+            name = names.get(str(id), f"Convidado {id}")  # Convertendo para string pois JSON usa strings como chaves
             color = (0, 255, 0)  # Verde para conhecidos
         else:
             name = "Desconhecido"
