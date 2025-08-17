@@ -33,6 +33,13 @@ def selecionar_camera():
         except ValueError:
             print("Digite apenas números!")
 
+def criar_pasta_pessoa(face_id, face_name):
+    """Cria uma pasta para a pessoa com base no ID e nome"""
+    pasta_pessoa = f"faces/{face_id}_{face_name}"
+    if not os.path.exists(pasta_pessoa):
+        os.makedirs(pasta_pessoa)
+    return pasta_pessoa
+
 def capturar_rostos(camera_idx):
     # Configurações iniciais
     if not os.path.exists('faces'):
@@ -49,6 +56,9 @@ def capturar_rostos(camera_idx):
 
     face_id = input("\nDigite um ID numérico para a pessoa: ")
     face_name = input("Digite o nome da pessoa: ")
+    
+    # Cria pasta para a pessoa
+    pasta_pessoa = criar_pasta_pessoa(face_id, face_name)
     
     # Salvar o mapeamento ID -> Nome
     names = {}
@@ -84,7 +94,7 @@ def capturar_rostos(camera_idx):
             count += 1
             # Redimensiona a face antes de salvar
             face_resized = cv2.resize(gray[y:y+h, x:x+w], TARGET_FACE_SIZE)
-            cv2.imwrite(f"faces/face_{face_id}_{count}.jpg", face_resized)
+            cv2.imwrite(f"{pasta_pessoa}/face_{count}.jpg", face_resized)
             print(f"Capturada imagem {count}/100", end='\r')
 
         cv2.imshow('Capturando Rostos', frame)
@@ -94,7 +104,7 @@ def capturar_rostos(camera_idx):
 
     cap.release()
     cv2.destroyAllWindows()
-    print(f"\nCaptura concluída! {count} imagens salvas na pasta 'faces'")
+    print(f"\nCaptura concluída! {count} imagens salvas em '{pasta_pessoa}'")
 
 def main():
     camera_idx = selecionar_camera()
